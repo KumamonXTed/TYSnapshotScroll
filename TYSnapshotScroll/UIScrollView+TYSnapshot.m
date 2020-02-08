@@ -14,8 +14,6 @@
 - (void )screenSnapshotNeedMask:(BOOL)needMask addMaskAfterBlock:(void(^)(void))addMaskAfterBlock finishBlock:(void(^)(UIImage *snapShotImage))finishBlock{
     if (!finishBlock)return;
     
-    __block UIImage* snapshotImage = nil;
-    
     UIView *snapShotMaskView;
     if (needMask){
         snapShotMaskView = [self addSnapShotMaskView];
@@ -33,34 +31,42 @@
     self.layer.frame = CGRectMake(0, 0, self.contentSize.width, self.contentSize.height);
 
     //延迟0.3秒，避免有时候渲染不出来的情况
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(300 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
-        self.contentOffset = CGPointZero;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(300 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
+    [self renderStepsCurrentOffset:CGPointZero oldFrame: oldFrame finishBlock:^(UIImage *snapShotImage) {
+        self.layer.frame = oldFrame;
+        //还原
+        self.contentOffset = oldContentOffset;
 
+        if (snapShotMaskView.layer){
+            [snapShotMaskView.layer removeFromSuperlayer];
+        }
+
+        if (snapShotImage != nil) {
+            finishBlock(snapShotImage);
+        }
+    }];
+
+}
+
+- (void)renderStepsCurrentOffset: (CGPoint)toOffset oldFrame: (CGRect)rect finishBlock:(void(^)(UIImage *snapShotImage))finishBlock {
+    self.contentOffset = toOffset;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(100 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
+
+        if (toOffset.y == 0) {
             UIGraphicsBeginImageContextWithOptions(self.bounds.size,NO,[UIScreen mainScreen].scale);
+        }
 
-            CGContextRef context = UIGraphicsGetCurrentContext();
+        CGContextRef context = UIGraphicsGetCurrentContext();
 
-            [self.layer renderInContext:context];
+        [self.layer renderInContext:context];
 
-            //[self drawViewHierarchyInRect:self.bounds afterScreenUpdates:NO];
-
-            snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
-
+        if (toOffset.y + rect.size.height < self.contentSize.height) {
+            [self renderStepsCurrentOffset:CGPointMake(toOffset.x, toOffset.y + rect.size.height) oldFrame: rect finishBlock:finishBlock];
+        } else {
+            UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
             UIGraphicsEndImageContext();
+            finishBlock(snapshotImage);
+        }
 
-            self.layer.frame = oldFrame;
-            //还原
-            self.contentOffset = oldContentOffset;
-
-            if (snapShotMaskView.layer){
-                [snapShotMaskView.layer removeFromSuperlayer];
-            }
-
-            if (snapshotImage != nil) {
-                finishBlock(snapshotImage);
-            }
-        });
     });
 }
 
