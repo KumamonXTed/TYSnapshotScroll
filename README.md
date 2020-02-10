@@ -2,8 +2,8 @@
 
 
 [English](README_EN.md)|简体中文
-## 一句代码保存截图,将scrollView相关的页面保存为图片,支持UIScrollView,UITableView,UICollectionView,UIWebView,WKWebView。（支持iOS13）
-> Save the scroll view page as an image,support UIScrollView,UITableView,UICollectionView,UIWebView,WKWebView。
+## 一句代码保存截图,将scrollView相关的页面保存为图片,支持UIScrollView,UITableView,UICollectionView,WKWebView。（支持iOS13）
+> Save the scroll view page as an image,support UIScrollView,UITableView,UICollectionView,WKWebView。
 
 [![](https://img.shields.io/badge/Supported-iOS8-4BC51D.svg?style=flat-square)](https://github.com/TonyReet/TYSnapshotScroll)  [![](https://img.shields.io/badge/Objc-compatible-4BC51D.svg?style=flat-square)](https://github.com/TonyReet/TYSnapshotScroll)
 
